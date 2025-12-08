@@ -7,10 +7,10 @@ RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY adk_server.py .
+COPY adk_api.py .
 COPY agents/ ./agents/
 
 ENV PORT=8003
 
 # Run the ADK API server (headless, no web UI)
-CMD uvicorn adk_server:app --host 0.0.0.0 --port ${PORT} --reload
+CMD uvicorn adk_api:app --host 0.0.0.0 --port ${PORT} --reload

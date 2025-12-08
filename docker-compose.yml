@@ -86,7 +86,7 @@ services:
       - a2a-network
     volumes:
       - ./agents:/app/agents
-      - ./adk_server.py:/app/adk_server.py
+      - ./adk_api.py:/app/adk_api.py
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8003/list-apps"]
       interval: 10s
