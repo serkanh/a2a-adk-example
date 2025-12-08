@@ -67,6 +67,39 @@ services:
       lookup_agent:
         condition: service_healthy
 
+  adk_api:
+    build:
+      context: .
+      dockerfile: Dockerfile.adk_api
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - MATH_AGENT_URL=http://math_agent:8001
+      - LOOKUP_AGENT_URL=http://lookup_agent:8002
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=adk_sessions
+    ports:
+      - "8003:8003"
+    networks:
+      - a2a-network
+    volumes:
+      - ./agents:/app/agents
+      - ./adk_server.py:/app/adk_server.py
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/list-apps"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      postgres:
+        condition: service_healthy
+      math_agent:
+        condition: service_healthy
+      lookup_agent:
+        condition: service_healthy
+
   postgres:
     image: postgres:15
     environment:
