@@ -1,0 +1,13 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY agents/ ./agents/
+
+ENV PORT=8000
+
+# adk web serves the coordinator agent
+CMD adk web agents/ --port ${PORT} --host 0.0.0.0

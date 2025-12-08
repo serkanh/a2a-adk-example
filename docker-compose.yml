@@ -1,0 +1,60 @@
+services:
+  math_agent:
+    build:
+      context: .
+      dockerfile: Dockerfile.headless
+      args:
+        AGENT_NAME: math_agent
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - PORT=8001
+    ports:
+      - "8001:8001"
+    networks:
+      - a2a-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/.well-known/agent-card.json"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  lookup_agent:
+    build:
+      context: .
+      dockerfile: Dockerfile.headless
+      args:
+        AGENT_NAME: lookup_agent
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - PORT=8002
+    ports:
+      - "8002:8002"
+    networks:
+      - a2a-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/.well-known/agent-card.json"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  coordinator:
+    build:
+      context: .
+      dockerfile: Dockerfile.coordinator
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - MATH_AGENT_URL=http://math_agent:8001
+      - LOOKUP_AGENT_URL=http://lookup_agent:8002
+    ports:
+      - "8000:8000"
+    networks:
+      - a2a-network
+    depends_on:
+      math_agent:
+        condition: service_healthy
+      lookup_agent:
+        condition: service_healthy
+
+networks:
+  a2a-network:
+    driver: bridge
