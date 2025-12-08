@@ -2,6 +2,7 @@
 
 import os
 
+from a2a.types import AgentCapabilities, AgentCard, AgentSkill
 from google.adk.agents.llm_agent import Agent
 from google.adk.a2a.utils.agent_to_a2a import to_a2a
 
@@ -61,4 +62,26 @@ root_agent = Agent(
 
 # Create A2A-compatible app
 PORT = int(os.environ.get("PORT", 8001))
-a2a_app = to_a2a(root_agent, port=PORT)
+# Use AGENT_HOST env var for Docker networking, defaults to localhost for local dev
+AGENT_HOST = os.environ.get("AGENT_HOST", "localhost")
+
+# Create custom agent card with correct URL for Docker networking
+agent_card = AgentCard(
+    name="math_agent",
+    description=root_agent.description,
+    url=f"http://{AGENT_HOST}:{PORT}",
+    version="1.0.0",
+    capabilities=AgentCapabilities(),
+    defaultInputModes=["text/plain"],
+    defaultOutputModes=["text/plain"],
+    skills=[
+        AgentSkill(
+            id="math_operations",
+            name="Mathematical Operations",
+            description="Perform addition, multiplication, and prime number checking",
+            tags=["math", "calculation"],
+        )
+    ],
+)
+
+a2a_app = to_a2a(root_agent, port=PORT, agent_card=agent_card)
