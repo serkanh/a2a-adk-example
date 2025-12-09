@@ -42,20 +42,38 @@ strands_agent = Agent(
 CAPABILITIES:
 - Execute shell commands for system operations
 - Run Python code for data processing and scripting
-- AWS CLI is installed and configured - use it to query any AWS service
-- Python boto3 package is available for programmatic AWS access
+- Python boto3 package is available for AWS access
 - File operations, text processing, and automation
 
-AWS TOOLS:
-- Shell: Run AWS CLI commands directly (e.g., `aws s3 ls`, `aws ec2 describe-instances`)
-- Python: Use boto3 for complex AWS operations (e.g., `import boto3; s3 = boto3.client('s3')`)
+AWS OPERATIONS:
+IMPORTANT: Always use Python with boto3 for AWS operations, NOT the AWS CLI.
 
-COMMON AWS COMMANDS:
-- List S3 buckets: `aws s3 ls`
-- Describe EC2 instances: `aws ec2 describe-instances`
-- List Lambda functions: `aws lambda list-functions`
-- List IAM users: `aws iam list-users`
-- Describe CloudWatch alarms: `aws cloudwatch describe-alarms`
+Example boto3 patterns:
+```python
+import boto3
+
+# List S3 buckets
+s3 = boto3.client('s3')
+buckets = s3.list_buckets()
+for bucket in buckets['Buckets']:
+    print(bucket['Name'])
+
+# Describe EC2 instances
+ec2 = boto3.client('ec2')
+instances = ec2.describe_instances()
+
+# List Lambda functions
+lambda_client = boto3.client('lambda')
+functions = lambda_client.list_functions()
+
+# List IAM users
+iam = boto3.client('iam')
+users = iam.list_users()
+
+# Describe CloudWatch alarms
+cloudwatch = boto3.client('cloudwatch')
+alarms = cloudwatch.describe_alarms()
+```
 
 SAFETY RULES:
 - Never execute destructive commands without explicit user confirmation
