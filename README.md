@@ -1,19 +1,24 @@
 # A2A Protocol Test Environment
 
-A multi-agent system demonstrating A2A protocol using the Agent Development Kit (ADK).
+A multi-agent system demonstrating A2A protocol using the Agent Development Kit (ADK) and Strands Agents.
 
 ## Architecture
 
 ```
-┌─────────────────┐      A2A       ┌─────────────────┐
-│   coordinator   │<──────────────>│   math_agent    │
-│   (port 8000)   │                │   (port 8001)   │
-└────────┬────────┘                └─────────────────┘
-         │ A2A
-         │                         ┌─────────────────┐
-         └────────────────────────>│  lookup_agent   │
-                                   │   (port 8002)   │
-                                   └─────────────────┘
+                              ┌─────────────────┐
+                      A2A     │   math_agent    │
+               ┌─────────────>│   (port 8001)   │
+               │              └─────────────────┘
+               │
+┌──────────────┴──┐           ┌─────────────────┐
+│   coordinator   │    A2A    │  lookup_agent   │
+│   (port 8000)   │──────────>│   (port 8002)   │
+└──────────────┬──┘           └─────────────────┘
+               │
+               │              ┌─────────────────┐
+               │      A2A     │  strands_agent  │
+               └─────────────>│   (port 8004)   │
+                              └─────────────────┘
 
 ┌─────────────────┐
 │    adk_api      │  (Headless API - same coordinator agent)
@@ -21,15 +26,17 @@ A multi-agent system demonstrating A2A protocol using the Agent Development Kit 
 └─────────────────┘
 ```
 
-- **coordinator**: Web UI that routes requests to specialized agents
-- **math_agent**: Handles math operations (add, multiply, prime check)
-- **lookup_agent**: Handles data lookups (weather, timezone)
+- **coordinator**: Web UI that routes requests to specialized agents (Google ADK)
+- **math_agent**: Handles math operations - add, multiply, prime check (Google ADK)
+- **lookup_agent**: Handles data lookups - weather, timezone (Google ADK)
+- **strands_agent**: System operations - shell commands, Python REPL, AWS CLI (Strands Agents)
 - **adk_api**: Headless REST API endpoint (no web UI) with session service
 
 ## Prerequisites
 
 - Docker and Docker Compose
 - Google API Key ([get one here](https://aistudio.google.com/apikey))
+- AWS credentials configured in `~/.aws` (for strands_agent AWS operations)
 
 ## Quick Start
 
@@ -57,6 +64,9 @@ open http://localhost:8000
 | "Is 17 prime?" | math_agent |
 | "Weather in Tokyo?" | lookup_agent |
 | "Time in London?" | lookup_agent |
+| "List files in current directory" | strands_agent |
+| "Run aws s3 ls" | strands_agent |
+| "Execute python: print(2**10)" | strands_agent |
 
 ## ADK API Usage (Headless)
 
@@ -127,11 +137,40 @@ curl http://localhost:8003/list-apps
 
 | Service | Port | Description |
 |---------|------|-------------|
-| coordinator | 8000 | Web UI with session persistence |
-| math_agent | 8001 | A2A math operations agent |
-| lookup_agent | 8002 | A2A data lookup agent |
-| adk_api | 8003 | Headless REST API |
+| coordinator | 8000 | Web UI with session persistence (Google ADK) |
+| math_agent | 8001 | A2A math operations agent (Google ADK) |
+| lookup_agent | 8002 | A2A data lookup agent (Google ADK) |
+| adk_api | 8003 | Headless REST API (Google ADK) |
+| strands_agent | 8004 | Shell/Python/AWS agent (Strands Agents) |
 | postgres | 5432 | Session storage database |
+
+## Strands Agent
+
+The strands_agent provides system operations capabilities powered by [Strands Agents](https://github.com/strands-agents/strands-agents).
+
+### Features
+
+- **Shell commands**: Execute any shell command (`ls`, `cat`, `grep`, etc.)
+- **Python REPL**: Run Python code with persistent state
+- **AWS CLI**: Pre-installed AWS CLI with credentials from `~/.aws`
+
+### Configuration
+
+The strands_agent uses these environment variables:
+
+| Variable | Description |
+|----------|-------------|
+| `AWS_PROFILE` | AWS profile to use (set in `.env`) |
+| `BYPASS_TOOL_CONSENT` | Skip confirmation prompts (headless mode) |
+| `PYTHON_REPL_INTERACTIVE` | Disable PTY mode for Python REPL |
+
+### AWS Setup
+
+1. Ensure your AWS credentials are configured in `~/.aws/`
+2. Set the `AWS_PROFILE` in your `.env` file:
+   ```
+   AWS_PROFILE=your-profile-name
+   ```
 
 ## Stop
 

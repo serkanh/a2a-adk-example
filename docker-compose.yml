@@ -39,6 +39,31 @@ services:
       timeout: 5s
       retries: 5
 
+  strands_agent:
+    build:
+      context: .
+      dockerfile: Dockerfile.strands
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - PORT=8004
+      - HOST=0.0.0.0
+      - AGENT_HOST=strands_agent
+      - AWS_PROFILE=${AWS_PROFILE}
+      # Headless mode settings for strands tools
+      - BYPASS_TOOL_CONSENT=true
+      - PYTHON_REPL_INTERACTIVE=false
+    volumes:
+      - ~/.aws:/root/.aws:ro
+    ports:
+      - "8004:8004"
+    networks:
+      - a2a-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/.well-known/agent-card.json"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   coordinator:
     build:
       context: .
@@ -47,6 +72,7 @@ services:
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
       - MATH_AGENT_URL=http://math_agent:8001
       - LOOKUP_AGENT_URL=http://lookup_agent:8002
+      - STRANDS_AGENT_URL=http://strands_agent:8004
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_HOST=postgres
@@ -66,6 +92,8 @@ services:
         condition: service_healthy
       lookup_agent:
         condition: service_healthy
+      strands_agent:
+        condition: service_healthy
 
   adk_api:
     build:
@@ -75,6 +103,7 @@ services:
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
       - MATH_AGENT_URL=http://math_agent:8001
       - LOOKUP_AGENT_URL=http://lookup_agent:8002
+      - STRANDS_AGENT_URL=http://strands_agent:8004
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_HOST=postgres
@@ -98,6 +127,8 @@ services:
       math_agent:
         condition: service_healthy
       lookup_agent:
+        condition: service_healthy
+      strands_agent:
         condition: service_healthy
 
   postgres:
